@@ -3,6 +3,11 @@ bin/
 obj/
 publish/
 publish-small/
+publish-release/
+
+# Release artifacts
+DisplayRefreshRate-*.zip
+release-notes-temp.md
 
 # User-specific files
 *.user

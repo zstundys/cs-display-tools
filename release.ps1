@@ -106,24 +106,50 @@ $ReleaseNotes = @"
 - .NET 8 Runtime
 "@
 
-$DraftFlag = if ($Draft) { "--draft" } else { "" }
-
-Push-Location $ProjectDir
-
-# Create release and upload asset
-if ($Draft) {
-    gh release create "v$Version" $ZipPath --title "v$Version" --notes $ReleaseNotes --draft
-} else {
-    gh release create "v$Version" $ZipPath --title "v$Version" --notes $ReleaseNotes
-}
-
-if ($LASTEXITCODE -ne 0) {
-    Write-Host "ERROR: Failed to create GitHub release!" -ForegroundColor Red
-    Pop-Location
+# Find git repo root
+$RepoRoot = git rev-parse --show-toplevel 2>$null
+if (-not $RepoRoot) {
+    Write-Host "ERROR: Not in a git repository!" -ForegroundColor Red
     exit 1
 }
 
+# Verify zip exists before proceeding
+if (-not (Test-Path $ZipPath)) {
+    Write-Host "ERROR: Zip file not found at: $ZipPath" -ForegroundColor Red
+    exit 1
+}
+
+Write-Host "Repo root: $RepoRoot"
+Write-Host "Uploading: $ZipPath"
+
+Push-Location $ProjectDir
+
+# Write release notes to temp file (avoids issues with multi-line strings in gh CLI)
+$NotesFile = Join-Path $ProjectDir "release-notes-temp.md"
+$ReleaseNotes | Out-File -FilePath $NotesFile -Encoding utf8
+
+# Create release and upload asset
+$ErrorActionPreference = "Continue"
+if ($Draft) {
+    gh release create "v$Version" $ZipName --title "v$Version" --notes-file $NotesFile --draft
+} else {
+    gh release create "v$Version" $ZipName --title "v$Version" --notes-file $NotesFile
+}
+$releaseResult = $LASTEXITCODE
+$ErrorActionPreference = "Stop"
+
+# Clean up temp notes file
+if (Test-Path $NotesFile) {
+    Remove-Item $NotesFile -Force
+}
+
 Pop-Location
+
+if ($releaseResult -ne 0) {
+    Write-Host "ERROR: Failed to create GitHub release!" -ForegroundColor Red
+    Write-Host "Make sure you have pushed your commits and the repository exists on GitHub." -ForegroundColor Yellow
+    exit 1
+}
 
 Write-Host ""
 Write-Host "=== Release Complete ===" -ForegroundColor Green
