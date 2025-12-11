@@ -9,6 +9,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <AssemblyName>DisplayRefreshRate</AssemblyName>
     <Version>1.0.0</Version>
+    <ApplicationIcon>app.ico</ApplicationIcon>
     
     <!-- Per-Monitor V2 DPI awareness for proper scaling on display switch -->
     <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
