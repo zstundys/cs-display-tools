@@ -47,6 +47,9 @@ public partial class App : System.Windows.Application
             _trayService.AddMenuItem("Toggle Display+Audio (Ctrl+Alt+F11)", OnToggleDisplay);
             _trayService.AddSeparator();
             _trayService.AddMenuItem("Exit", () => Shutdown());
+            // Set max refresh rate on startup
+            _displayService.SetMaxRefreshRate();
+            
             _lastKnownHz = _displayService.GetCurrentRefreshRate();
             _trayService.Initialize(_lastKnownHz);
             _trayService.OnDoubleClick = ShowSettings;
@@ -109,6 +112,9 @@ public partial class App : System.Windows.Application
                         _lastKnownHz = currentHz;
                         _trayService.UpdateRefreshRate(currentHz);
                     }
+                    
+                    // Refresh context menu to fix DPI scaling after display switch
+                    _trayService.RefreshContextMenu();
                 });
             }
             catch (Exception ex)

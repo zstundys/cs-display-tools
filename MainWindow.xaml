@@ -160,6 +160,39 @@
                     </StackPanel>
                 </ui:CardExpander>
 
+                <!-- Settings Card -->
+                <ui:CardExpander IsExpanded="True" Margin="0,0,0,12">
+                    <ui:CardExpander.Header>
+                        <StackPanel>
+                            <ui:TextBlock Text="Settings" FontTypography="BodyStrong"/>
+                            <ui:TextBlock Text="Application preferences" 
+                                          FontTypography="Caption"
+                                          Foreground="{ui:ThemeResource TextFillColorSecondaryBrush}"/>
+                        </StackPanel>
+                    </ui:CardExpander.Header>
+                    <ui:CardExpander.Icon>
+                        <ui:SymbolIcon Symbol="Settings24"/>
+                    </ui:CardExpander.Icon>
+                    
+                    <Grid Margin="0,8,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <ui:TextBlock Text="Run on Startup" VerticalAlignment="Center"/>
+                            <ui:TextBlock Text="Start automatically when Windows starts" 
+                                          FontTypography="Caption"
+                                          Foreground="{ui:ThemeResource TextFillColorSecondaryBrush}"/>
+                        </StackPanel>
+                        <ui:ToggleSwitch x:Name="StartupToggle" 
+                                         Grid.Column="1" 
+                                         VerticalAlignment="Center"
+                                         Checked="StartupToggle_Toggled"
+                                         Unchecked="StartupToggle_Toggled"/>
+                    </Grid>
+                </ui:CardExpander>
+
                 <!-- Action Buttons -->
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,8,0,0">
                     <ui:Button Content="Set Max Hz" 

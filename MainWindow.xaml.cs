@@ -27,6 +27,13 @@ public partial class MainWindow : FluentWindow
     {
         UpdateStatus();
         LoadAudioDevices();
+        LoadSettings();
+    }
+
+    private void LoadSettings()
+    {
+        // Load startup toggle state
+        StartupToggle.IsChecked = TrayService.IsRunOnStartupEnabled();
     }
 
     public void UpdateStatus()
@@ -150,6 +157,11 @@ public partial class MainWindow : FluentWindow
         
         // Update UI after a short delay
         Task.Delay(500).ContinueWith(_ => Dispatcher.Invoke(UpdateStatus));
+    }
+
+    private void StartupToggle_Toggled(object sender, RoutedEventArgs e)
+    {
+        TrayService.SetRunOnStartup(StartupToggle.IsChecked == true);
     }
 
     // Window now closes normally to free GPU memory
