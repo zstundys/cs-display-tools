@@ -1,0 +1,164 @@
+<ui:FluentWindow x:Class="DisplayRefreshRate.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+        Title="DisplayRefreshRate" 
+        Height="520" Width="580"
+        MinHeight="480" MinWidth="500"
+        WindowStartupLocation="CenterScreen"
+        ExtendsContentIntoTitleBar="True"
+        WindowBackdropType="Mica">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Title Bar -->
+        <ui:TitleBar Grid.Row="0" Title="DisplayRefreshRate" ShowMaximize="True" ShowMinimize="True">
+            <ui:TitleBar.Icon>
+                <ui:SymbolIcon Symbol="Desktop24"/>
+            </ui:TitleBar.Icon>
+        </ui:TitleBar>
+
+        <!-- Main Content -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="24,12,24,24">
+                
+                <!-- Header -->
+                <StackPanel Margin="0,0,0,20">
+                    <ui:TextBlock Text="DisplayRefreshRate" 
+                                  FontTypography="TitleLarge" 
+                                  Foreground="{ui:ThemeResource SystemAccentColorPrimaryBrush}"/>
+                    <ui:TextBlock Text="Display &amp; Audio Manager" 
+                                  FontTypography="Body"
+                                  Foreground="{ui:ThemeResource TextFillColorSecondaryBrush}" 
+                                  Margin="0,4,0,0"/>
+                </StackPanel>
+
+                <!-- Current Status Card -->
+                <ui:CardExpander IsExpanded="True" Margin="0,0,0,12">
+                    <ui:CardExpander.Header>
+                        <StackPanel>
+                            <ui:TextBlock Text="Current Status" FontTypography="BodyStrong"/>
+                            <ui:TextBlock Text="Display mode information" 
+                                          FontTypography="Caption"
+                                          Foreground="{ui:ThemeResource TextFillColorSecondaryBrush}"/>
+                        </StackPanel>
+                    </ui:CardExpander.Header>
+                    <ui:CardExpander.Icon>
+                        <ui:SymbolIcon Symbol="Desktop24"/>
+                    </ui:CardExpander.Icon>
+                    
+                    <Grid Margin="0,8,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <ui:TextBlock Text="Display Mode:" VerticalAlignment="Center"/>
+                        <ui:Badge x:Name="CurrentModeBadge" 
+                                  Grid.Column="1" 
+                                  HorizontalAlignment="Left"
+                                  Margin="12,0,0,0"
+                                  Appearance="Success">
+                            <ui:TextBlock x:Name="CurrentModeText" Text="Primary" FontTypography="Body"/>
+                        </ui:Badge>
+                    </Grid>
+                </ui:CardExpander>
+
+                <!-- Audio Settings Card -->
+                <ui:CardExpander IsExpanded="True" Margin="0,0,0,12">
+                    <ui:CardExpander.Header>
+                        <StackPanel>
+                            <ui:TextBlock Text="Audio Devices" FontTypography="BodyStrong"/>
+                            <ui:TextBlock Text="Select audio output for each display mode" 
+                                          FontTypography="Caption"
+                                          Foreground="{ui:ThemeResource TextFillColorSecondaryBrush}"/>
+                        </StackPanel>
+                    </ui:CardExpander.Header>
+                    <ui:CardExpander.Icon>
+                        <ui:SymbolIcon Symbol="Speaker224"/>
+                    </ui:CardExpander.Icon>
+                    
+                    <StackPanel Margin="0,8,0,0">
+                        <Grid Margin="0,0,0,12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="130"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <ui:TextBlock Text="Primary Display:" VerticalAlignment="Center"/>
+                            <ComboBox x:Name="PrimaryAudioCombo" 
+                                      Grid.Column="1" 
+                                      SelectionChanged="PrimaryAudioCombo_SelectionChanged"/>
+                        </Grid>
+                        
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="130"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <ui:TextBlock Text="External Display:" VerticalAlignment="Center"/>
+                            <ComboBox x:Name="SecondaryAudioCombo" 
+                                      Grid.Column="1" 
+                                      SelectionChanged="SecondaryAudioCombo_SelectionChanged"/>
+                        </Grid>
+                    </StackPanel>
+                </ui:CardExpander>
+
+                <!-- Hotkeys Card -->
+                <ui:CardExpander IsExpanded="True" Margin="0,0,0,12">
+                    <ui:CardExpander.Header>
+                        <StackPanel>
+                            <ui:TextBlock Text="Keyboard Shortcuts" FontTypography="BodyStrong"/>
+                            <ui:TextBlock Text="Global hotkeys for quick actions" 
+                                          FontTypography="Caption"
+                                          Foreground="{ui:ThemeResource TextFillColorSecondaryBrush}"/>
+                        </StackPanel>
+                    </ui:CardExpander.Header>
+                    <ui:CardExpander.Icon>
+                        <ui:SymbolIcon Symbol="Keyboard24"/>
+                    </ui:CardExpander.Icon>
+                    
+                    <StackPanel Margin="0,8,0,0">
+                        <Grid Margin="0,0,0,8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <ui:TextBlock Text="Set Max Refresh Rate" VerticalAlignment="Center"/>
+                            <ui:Badge Grid.Column="1" Appearance="Info">
+                                <ui:TextBlock Text="Ctrl + Alt + F12" FontFamily="Consolas" FontSize="12"/>
+                            </ui:Badge>
+                        </Grid>
+                        
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <ui:TextBlock Text="Toggle Display + Audio" VerticalAlignment="Center"/>
+                            <ui:Badge Grid.Column="1" Appearance="Info">
+                                <ui:TextBlock Text="Ctrl + Alt + F11" FontFamily="Consolas" FontSize="12"/>
+                            </ui:Badge>
+                        </Grid>
+                    </StackPanel>
+                </ui:CardExpander>
+
+                <!-- Action Buttons -->
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,8,0,0">
+                    <ui:Button Content="Set Max Hz" 
+                               Icon="{ui:SymbolIcon Gauge24}"
+                               Appearance="Secondary"
+                               Click="SetMaxHz_Click" 
+                               Margin="0,0,12,0"/>
+                    <ui:Button Content="Toggle Display" 
+                               Icon="{ui:SymbolIcon DesktopArrowRight24}"
+                               Appearance="Primary"
+                               Click="ToggleDisplay_Click"/>
+                </StackPanel>
+
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</ui:FluentWindow>
