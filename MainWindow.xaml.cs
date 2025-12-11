@@ -34,6 +34,10 @@ public partial class MainWindow : FluentWindow
     {
         // Load startup toggle state
         StartupToggle.IsChecked = TrayService.IsRunOnStartupEnabled();
+        
+        // Load max Hz settings
+        PrimaryMaxHzBox.Value = _settingsService.PrimaryMaxHz;
+        ExternalMaxHzBox.Value = _settingsService.ExternalMaxHz;
     }
 
     public void UpdateStatus()
@@ -162,6 +166,24 @@ public partial class MainWindow : FluentWindow
     private void StartupToggle_Toggled(object sender, RoutedEventArgs e)
     {
         TrayService.SetRunOnStartup(StartupToggle.IsChecked == true);
+    }
+
+    private void PrimaryMaxHzBox_ValueChanged(object sender, RoutedEventArgs e)
+    {
+        if (_isLoadingDevices) return;
+        
+        int value = (int)(PrimaryMaxHzBox.Value ?? 0);
+        _settingsService.PrimaryMaxHz = value;
+        _settingsService.Save();
+    }
+
+    private void ExternalMaxHzBox_ValueChanged(object sender, RoutedEventArgs e)
+    {
+        if (_isLoadingDevices) return;
+        
+        int value = (int)(ExternalMaxHzBox.Value ?? 119);
+        _settingsService.ExternalMaxHz = value;
+        _settingsService.Save();
     }
 
     // Window now closes normally to free GPU memory

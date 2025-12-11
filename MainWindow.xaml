@@ -82,41 +82,80 @@
                     </StackPanel>
                 </ui:CardExpander>
 
-                <!-- Audio Settings Card -->
+                <!-- Display Profiles Card -->
                 <ui:CardExpander IsExpanded="True" Margin="0,0,0,12">
                     <ui:CardExpander.Header>
                         <StackPanel>
-                            <ui:TextBlock Text="Audio Devices" FontTypography="BodyStrong"/>
-                            <ui:TextBlock Text="Select audio output for each display mode" 
+                            <ui:TextBlock Text="Display Profiles" FontTypography="BodyStrong"/>
+                            <ui:TextBlock Text="Audio output and max refresh rate for each mode" 
                                           FontTypography="Caption"
                                           Foreground="{ui:ThemeResource TextFillColorSecondaryBrush}"/>
                         </StackPanel>
                     </ui:CardExpander.Header>
                     <ui:CardExpander.Icon>
-                        <ui:SymbolIcon Symbol="Speaker224"/>
+                        <ui:SymbolIcon Symbol="SlideSettings24"/>
                     </ui:CardExpander.Icon>
                     
                     <StackPanel Margin="0,8,0,0">
-                        <Grid Margin="0,0,0,12">
+                        <!-- Column Headers -->
+                        <Grid Margin="0,0,0,8">
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="130"/>
+                                <ColumnDefinition Width="100"/>
                                 <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="90"/>
                             </Grid.ColumnDefinitions>
-                            <ui:TextBlock Text="Primary Display:" VerticalAlignment="Center"/>
-                            <ComboBox x:Name="PrimaryAudioCombo" 
-                                      Grid.Column="1" 
-                                      SelectionChanged="PrimaryAudioCombo_SelectionChanged"/>
+                            <ui:TextBlock Text="" Grid.Column="0"/>
+                            <ui:TextBlock Text="Audio Device" Grid.Column="1" 
+                                          FontTypography="Caption"
+                                          Foreground="{ui:ThemeResource TextFillColorSecondaryBrush}"/>
+                            <ui:TextBlock Text="Max Hz" Grid.Column="2" 
+                                          FontTypography="Caption"
+                                          Foreground="{ui:ThemeResource TextFillColorSecondaryBrush}"
+                                          HorizontalAlignment="Center"/>
                         </Grid>
                         
+                        <!-- Primary Display Row -->
+                        <Grid Margin="0,0,0,12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="100"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="90"/>
+                            </Grid.ColumnDefinitions>
+                            <ui:TextBlock Text="Primary:" VerticalAlignment="Center" FontTypography="BodyStrong"/>
+                            <ComboBox x:Name="PrimaryAudioCombo" 
+                                      Grid.Column="1" 
+                                      Margin="0,0,12,0"
+                                      SelectionChanged="PrimaryAudioCombo_SelectionChanged"/>
+                            <ui:NumberBox x:Name="PrimaryMaxHzBox"
+                                          Grid.Column="2"
+                                          Width="80"
+                                          Minimum="0"
+                                          Maximum="360"
+                                          SpinButtonPlacementMode="Compact"
+                                          ToolTip="0 = no limit"
+                                          ValueChanged="PrimaryMaxHzBox_ValueChanged"/>
+                        </Grid>
+                        
+                        <!-- External Display Row -->
                         <Grid>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="130"/>
+                                <ColumnDefinition Width="100"/>
                                 <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="90"/>
                             </Grid.ColumnDefinitions>
-                            <ui:TextBlock Text="External Display:" VerticalAlignment="Center"/>
+                            <ui:TextBlock Text="External:" VerticalAlignment="Center" FontTypography="BodyStrong"/>
                             <ComboBox x:Name="SecondaryAudioCombo" 
-                                      Grid.Column="1" 
+                                      Grid.Column="1"
+                                      Margin="0,0,12,0"
                                       SelectionChanged="SecondaryAudioCombo_SelectionChanged"/>
+                            <ui:NumberBox x:Name="ExternalMaxHzBox"
+                                          Grid.Column="2"
+                                          Width="80"
+                                          Minimum="0"
+                                          Maximum="360"
+                                          SpinButtonPlacementMode="Compact"
+                                          ToolTip="0 = no limit"
+                                          ValueChanged="ExternalMaxHzBox_ValueChanged"/>
                         </Grid>
                     </StackPanel>
                 </ui:CardExpander>
@@ -203,6 +242,7 @@
                     <ui:Button Content="Toggle Display" 
                                Icon="{ui:SymbolIcon DesktopArrowRight24}"
                                Appearance="Primary"
+                               Foreground="White"
                                Click="ToggleDisplay_Click"/>
                 </StackPanel>
 

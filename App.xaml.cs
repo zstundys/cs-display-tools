@@ -1,5 +1,6 @@
 using System.Windows;
 using DisplayRefreshRate.Services;
+using Wpf.Ui.Appearance;
 
 namespace DisplayRefreshRate;
 
@@ -16,6 +17,13 @@ public partial class App : System.Windows.Application
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
+        
+        // Apply system theme (light/dark) on startup
+        var systemTheme = ApplicationThemeManager.GetSystemTheme();
+        var appTheme = systemTheme == SystemTheme.Dark || systemTheme == SystemTheme.HC1 || systemTheme == SystemTheme.HC2 
+            ? ApplicationTheme.Dark 
+            : ApplicationTheme.Light;
+        ApplicationThemeManager.Apply(appTheme);
 
         try
         {
@@ -69,6 +77,9 @@ public partial class App : System.Windows.Application
         {
             _mainWindow = new MainWindow(_displayService!, _audioService!, _settingsService!);
             _mainWindow.Closed += (s, e) => _mainWindow = null;  // Clear reference when closed
+            
+            // Watch for system theme changes on this window
+            SystemThemeWatcher.Watch(_mainWindow);
         }
         
         _mainWindow.UpdateStatus();
@@ -124,12 +135,9 @@ public partial class App : System.Windows.Application
         });
     }
 
-    // Max Hz for external display (119Hz for 12-bit color support - 119.88Hz)
-    private const int ExternalDisplayMaxHz = 119;
-
     private void OnToggleDisplay()
     {
-        if (_displayService == null || _audioService == null) return;
+        if (_displayService == null || _audioService == null || _settingsService == null) return;
 
         bool switchingToExternal = _displayService.IsPrimaryDisplayOnly();
         _displayService.TogglePrimarySecondaryDisplay();
@@ -137,11 +145,11 @@ public partial class App : System.Windows.Application
         _audioService.SetDefaultAudioForMode(switchingToExternal);
 
         // Set max refresh rate after display switch (with delay for display to settle)
-        // External display limited to 119Hz for 12-bit color
+        // Use configured max Hz for each display mode (0 = no limit)
+        int maxHz = switchingToExternal ? _settingsService.ExternalMaxHz : _settingsService.PrimaryMaxHz;
         Task.Run(async () =>
         {
             await Task.Delay(3000);  // Wait for display switch to complete
-            int maxHz = switchingToExternal ? ExternalDisplayMaxHz : 0;  // 0 = no limit
             _displayService.SetMaxRefreshRate(null, maxHz);
             
             // Wait a bit more for the Hz change to apply, then update icon
