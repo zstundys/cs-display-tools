@@ -51,20 +51,35 @@
                         <ui:SymbolIcon Symbol="Desktop24"/>
                     </ui:CardExpander.Icon>
                     
-                    <Grid Margin="0,8,0,0">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <ui:TextBlock Text="Display Mode:" VerticalAlignment="Center"/>
-                        <ui:Badge x:Name="CurrentModeBadge" 
-                                  Grid.Column="1" 
-                                  HorizontalAlignment="Left"
-                                  Margin="12,0,0,0"
-                                  Appearance="Success">
-                            <ui:TextBlock x:Name="CurrentModeText" Text="Primary" FontTypography="Body"/>
-                        </ui:Badge>
-                    </Grid>
+                    <StackPanel Margin="0,8,0,0">
+                        <Grid Margin="0,0,0,12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="120"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <ui:TextBlock Text="Refresh Rate:" VerticalAlignment="Center"/>
+                            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                <ui:TextBlock x:Name="CurrentHzText" 
+                                              Text="-- Hz" 
+                                              FontTypography="BodyStrong"
+                                              Foreground="{ui:ThemeResource SystemAccentColorPrimaryBrush}"
+                                              VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Grid>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="120"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <ui:TextBlock Text="Display Mode:" VerticalAlignment="Center"/>
+                            <ui:Badge x:Name="CurrentModeBadge" 
+                                      Grid.Column="1" 
+                                      HorizontalAlignment="Left"
+                                      Appearance="Success">
+                                <ui:TextBlock x:Name="CurrentModeText" Text="Primary" FontTypography="Body"/>
+                            </ui:Badge>
+                        </Grid>
+                    </StackPanel>
                 </ui:CardExpander>
 
                 <!-- Audio Settings Card -->

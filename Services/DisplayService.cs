@@ -11,7 +11,9 @@ public class DisplayService
     /// <summary>
     /// Sets the display to the maximum available refresh rate for the current resolution.
     /// </summary>
-    public void SetMaxRefreshRate(string? deviceName = null)
+    /// <param name="deviceName">Optional device name (null for primary)</param>
+    /// <param name="maxHzLimit">Optional max Hz limit (0 for no limit, e.g., 120 for 12-bit color)</param>
+    public void SetMaxRefreshRate(string? deviceName = null, int maxHzLimit = 0)
     {
         var devMode = new NativeMethods.DEVMODE();
         devMode.dmSize = (ushort)Marshal.SizeOf<NativeMethods.DEVMODE>();
@@ -29,13 +31,15 @@ public class DisplayService
         NativeMethods.DEVMODE bestMode = default;
         bestMode.dmSize = (ushort)Marshal.SizeOf<NativeMethods.DEVMODE>();
 
-        // Enumerate all display modes to find highest refresh rate
+        // If limit is set, use it; otherwise cap at 360Hz
+        int upperLimit = maxHzLimit > 0 ? maxHzLimit : 360;
+
+        // Enumerate all display modes to find highest refresh rate within limit
         while (NativeMethods.EnumDisplaySettingsW(deviceName, modeNum++, ref devMode))
         {
             if (devMode.dmPelsWidth == targetWidth && devMode.dmPelsHeight == targetHeight)
             {
-                // Cap at 360Hz to avoid invalid modes
-                if (devMode.dmDisplayFrequency > maxHz && devMode.dmDisplayFrequency < 361)
+                if (devMode.dmDisplayFrequency > maxHz && devMode.dmDisplayFrequency <= upperLimit)
                 {
                     maxHz = (int)devMode.dmDisplayFrequency;
                     bestMode = devMode;
@@ -84,5 +88,20 @@ public class DisplayService
     /// Returns true if currently showing only the primary display.
     /// </summary>
     public bool IsPrimaryDisplayOnly() => _isPrimaryDisplayOnly;
+
+    /// <summary>
+    /// Gets the current display refresh rate in Hz.
+    /// </summary>
+    public int GetCurrentRefreshRate(string? deviceName = null)
+    {
+        var devMode = new NativeMethods.DEVMODE();
+        devMode.dmSize = (ushort)Marshal.SizeOf<NativeMethods.DEVMODE>();
+        
+        if (NativeMethods.EnumDisplaySettingsW(deviceName, NativeMethods.ENUM_CURRENT_SETTINGS, ref devMode))
+        {
+            return (int)devMode.dmDisplayFrequency;
+        }
+        return 0;
+    }
 }
 

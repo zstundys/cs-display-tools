@@ -10,9 +10,16 @@ public class HotkeyService : IDisposable
     private IntPtr _hwnd;
     private bool _disposed;
 
+    private const int WM_DISPLAYCHANGE = 0x007E;
+
+    /// <summary>
+    /// Called when display settings change (resolution, refresh rate, etc.)
+    /// </summary>
+    public Action? OnDisplayChanged { get; set; }
+
     public HotkeyService()
     {
-        // Create a hidden window to receive hotkey messages
+        // Create a hidden window to receive hotkey and display change messages
         var parameters = new HwndSourceParameters("HotkeyWindow")
         {
             Width = 0,
@@ -62,6 +69,11 @@ public class HotkeyService : IDisposable
                 callback.Invoke();
                 handled = true;
             }
+        }
+        else if (msg == WM_DISPLAYCHANGE)
+        {
+            // Display settings changed - notify listener
+            OnDisplayChanged?.Invoke();
         }
         return IntPtr.Zero;
     }

@@ -31,11 +31,16 @@ public partial class MainWindow : FluentWindow
 
     public void UpdateStatus()
     {
+        // Update display mode
         var mode = _displayService.GetCurrentMode();
         CurrentModeText.Text = mode == DisplayMode.Primary ? "Primary" : "External";
         CurrentModeBadge.Appearance = mode == DisplayMode.Primary 
             ? ControlAppearance.Success 
             : ControlAppearance.Caution;
+
+        // Update refresh rate
+        int hz = _displayService.GetCurrentRefreshRate();
+        CurrentHzText.Text = $"{hz} Hz";
     }
 
     private void LoadAudioDevices()
@@ -47,6 +52,8 @@ public partial class MainWindow : FluentWindow
             PrimaryAudioCombo.Items.Clear();
             SecondaryAudioCombo.Items.Clear();
 
+            // Get currently active devices
+            var activeDevices = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             using var enumerator = new MMDeviceEnumerator();
             var devices = enumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active);
 
@@ -54,34 +61,25 @@ public partial class MainWindow : FluentWindow
             {
                 PrimaryAudioCombo.Items.Add(device.FriendlyName);
                 SecondaryAudioCombo.Items.Add(device.FriendlyName);
+                activeDevices.Add(device.FriendlyName);
+            }
+
+            // Add saved devices from config if not already in list (they may be offline)
+            if (!string.IsNullOrEmpty(_settingsService.PrimaryDevice) && 
+                !activeDevices.Contains(_settingsService.PrimaryDevice))
+            {
+                PrimaryAudioCombo.Items.Add($"{_settingsService.PrimaryDevice} (offline)");
+            }
+            
+            if (!string.IsNullOrEmpty(_settingsService.SecondaryDevice) && 
+                !activeDevices.Contains(_settingsService.SecondaryDevice))
+            {
+                SecondaryAudioCombo.Items.Add($"{_settingsService.SecondaryDevice} (offline)");
             }
 
             // Select current settings
-            if (!string.IsNullOrEmpty(_settingsService.PrimaryDevice))
-            {
-                for (int i = 0; i < PrimaryAudioCombo.Items.Count; i++)
-                {
-                    if (PrimaryAudioCombo.Items[i]?.ToString()?.Contains(_settingsService.PrimaryDevice, StringComparison.OrdinalIgnoreCase) == true ||
-                        _settingsService.PrimaryDevice.Contains(PrimaryAudioCombo.Items[i]?.ToString() ?? "", StringComparison.OrdinalIgnoreCase))
-                    {
-                        PrimaryAudioCombo.SelectedIndex = i;
-                        break;
-                    }
-                }
-            }
-
-            if (!string.IsNullOrEmpty(_settingsService.SecondaryDevice))
-            {
-                for (int i = 0; i < SecondaryAudioCombo.Items.Count; i++)
-                {
-                    if (SecondaryAudioCombo.Items[i]?.ToString()?.Contains(_settingsService.SecondaryDevice, StringComparison.OrdinalIgnoreCase) == true ||
-                        _settingsService.SecondaryDevice.Contains(SecondaryAudioCombo.Items[i]?.ToString() ?? "", StringComparison.OrdinalIgnoreCase))
-                    {
-                        SecondaryAudioCombo.SelectedIndex = i;
-                        break;
-                    }
-                }
-            }
+            SelectDeviceInCombo(PrimaryAudioCombo, _settingsService.PrimaryDevice);
+            SelectDeviceInCombo(SecondaryAudioCombo, _settingsService.SecondaryDevice);
         }
         catch (Exception ex)
         {
@@ -93,11 +91,34 @@ public partial class MainWindow : FluentWindow
         }
     }
 
+    private static void SelectDeviceInCombo(System.Windows.Controls.ComboBox combo, string deviceName)
+    {
+        if (string.IsNullOrEmpty(deviceName)) return;
+
+        for (int i = 0; i < combo.Items.Count; i++)
+        {
+            string? item = combo.Items[i]?.ToString();
+            if (item == null) continue;
+            
+            // Match exact, contains, or offline version
+            if (item.Equals(deviceName, StringComparison.OrdinalIgnoreCase) ||
+                item.Contains(deviceName, StringComparison.OrdinalIgnoreCase) ||
+                deviceName.Contains(item.Replace(" (offline)", ""), StringComparison.OrdinalIgnoreCase))
+            {
+                combo.SelectedIndex = i;
+                break;
+            }
+        }
+    }
+
     private void PrimaryAudioCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (_isLoadingDevices || PrimaryAudioCombo.SelectedItem == null) return;
         
-        _settingsService.PrimaryDevice = PrimaryAudioCombo.SelectedItem.ToString() ?? "";
+        // Strip "(offline)" suffix if present
+        string device = PrimaryAudioCombo.SelectedItem.ToString() ?? "";
+        device = device.Replace(" (offline)", "");
+        _settingsService.PrimaryDevice = device;
         _settingsService.Save();
     }
 
@@ -105,13 +126,17 @@ public partial class MainWindow : FluentWindow
     {
         if (_isLoadingDevices || SecondaryAudioCombo.SelectedItem == null) return;
         
-        _settingsService.SecondaryDevice = SecondaryAudioCombo.SelectedItem.ToString() ?? "";
+        // Strip "(offline)" suffix if present
+        string device = SecondaryAudioCombo.SelectedItem.ToString() ?? "";
+        device = device.Replace(" (offline)", "");
+        _settingsService.SecondaryDevice = device;
         _settingsService.Save();
     }
 
     private void SetMaxHz_Click(object sender, RoutedEventArgs e)
     {
         _displayService.SetMaxRefreshRate();
+        UpdateStatus();  // Refresh the Hz display
     }
 
     private void ToggleDisplay_Click(object sender, RoutedEventArgs e)
@@ -127,11 +152,7 @@ public partial class MainWindow : FluentWindow
         Task.Delay(500).ContinueWith(_ => Dispatcher.Invoke(UpdateStatus));
     }
 
-    protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
-    {
-        // Hide instead of close
-        e.Cancel = true;
-        Hide();
-    }
+    // Window now closes normally to free GPU memory
+    // App.xaml.cs will recreate it when needed
 }
 
