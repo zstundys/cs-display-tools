@@ -14,8 +14,8 @@ Thank you for your interest in contributing!
 
 ```bash
 # Clone the repository
-git clone https://github.com/YOUR_USERNAME/display-refresh-rate.git
-cd display-refresh-rate/DisplayRefreshRate.CSharp
+git clone https://github.com/zstundys/cs-display-tools.git
+cd cs-display-tools
 
 # Build debug version
 dotnet build
@@ -48,10 +48,13 @@ DisplayRefreshRate.CSharp/
 │   └── SettingsService.cs      # INI file persistence
 ├── Native/
 │   └── NativeMethods.cs        # P/Invoke declarations
+├── app.ico                     # Application icon
 ├── build.bat                   # Debug build script
-├── publish.bat                 # Release build script
+├── publish.bat                 # Self-contained release (~150MB)
+├── publish-small.bat           # Framework-dependent release (~7MB)
 ├── release.bat                 # GitHub release script
-└── release.ps1                 # GitHub release PowerShell script
+├── release.ps1                 # GitHub release PowerShell script
+└── create-icon.ps1             # Icon generation script
 ```
 
 ## Creating a Release

@@ -9,9 +9,9 @@ A Windows system tray utility for managing display refresh rates and audio outpu
 - **Auto Max Refresh Rate** - Automatically sets your display to the highest available refresh rate on startup
 - **Display Toggle** - Switch between primary and external displays with a hotkey
 - **Audio Switching** - Automatically switches audio output when changing displays
-- **Refresh Rate Limit** - External display can be capped (e.g., 119Hz for 12-bit HDR color)
+- **Refresh Rate Limits** - Configure max Hz for both primary and external displays (e.g., 119Hz for 12-bit HDR)
 - **System Tray** - Lives in the tray with current Hz displayed in the icon
-- **Windows 11 UI** - Modern Fluent Design settings window
+- **Windows 11 UI** - Modern Fluent Design settings window with light/dark theme support
 
 ## Keyboard Shortcuts
 
@@ -34,13 +34,18 @@ Requires [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0).
 # Debug build
 dotnet build
 
-# Release build (single-file)
-dotnet publish -c Release --self-contained false -p:PublishSingleFile=true -o publish
+# Release build (framework-dependent, smaller)
+dotnet publish -c Release --self-contained false -p:PublishSingleFile=true -o publish-small
+
+# Release build (self-contained, no runtime needed)
+dotnet publish -c Release --self-contained true -p:PublishSingleFile=true -o publish
 ```
 
-Or use the included batch scripts:
+Or use the included scripts:
 - `build.bat` - Debug build
-- `publish.bat` - Release single-file executable
+- `publish.bat` - Self-contained single-file (~150MB, no .NET required)
+- `publish-small.bat` - Framework-dependent single-file (~7MB, requires .NET 8)
+- `release.bat <version>` - Build + create GitHub release
 
 ## Configuration
 
@@ -50,7 +55,13 @@ Settings are stored in `audio.ini` next to the executable:
 [Audio]
 Primary=Speakers (Realtek Audio)
 Secondary=LG TV SSCR2 (NVIDIA High Definition Audio)
+
+[Display]
+PrimaryMaxHz=0
+ExternalMaxHz=119
 ```
+
+- `PrimaryMaxHz` / `ExternalMaxHz` - Max refresh rate limit (0 = no limit)
 
 ## How It Works
 
