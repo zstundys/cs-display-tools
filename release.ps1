@@ -30,8 +30,12 @@ if (-not (Get-Command "gh" -ErrorAction SilentlyContinue)) {
 }
 
 # Check if logged in to GitHub
-$ghAuth = gh auth status 2>&1
-if ($LASTEXITCODE -ne 0) {
+$ErrorActionPreference = "Continue"
+gh auth status 2>$null | Out-Null
+$authResult = $LASTEXITCODE
+$ErrorActionPreference = "Stop"
+
+if ($authResult -ne 0) {
     Write-Host "ERROR: Not logged in to GitHub CLI." -ForegroundColor Red
     Write-Host "Run: gh auth login"
     exit 1
