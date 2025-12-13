@@ -86,15 +86,28 @@ Write-Host "Created: $ZipName" -ForegroundColor Green
 Write-Host ""
 Write-Host "Creating GitHub release..." -ForegroundColor Yellow
 
+# Get the previous release tag
+$PreviousTag = git describe --tags --abbrev=0 2>$null
+if ($PreviousTag) {
+    Write-Host "Previous release: $PreviousTag" -ForegroundColor Gray
+    $CommitRange = "$PreviousTag..HEAD"
+} else {
+    Write-Host "No previous release found, including all commits" -ForegroundColor Gray
+    $CommitRange = "HEAD"
+}
+
+# Get commit messages since last release
+$Commits = git log $CommitRange --pretty=format:"- %s" --no-merges 2>$null
+if (-not $Commits) {
+    $Commits = "- Various improvements and bug fixes"
+}
+
+# Build release notes
 $ReleaseNotes = @"
 ## DisplayRefreshRate v$Version
 
-### Features
-- Auto max refresh rate on startup
-- Display toggle (Ctrl+Alt+F11)
-- Audio device switching
-- System tray with Hz display
-- Windows 11 Fluent UI
+### Changes
+$Commits
 
 ### Installation
 1. Download ``$ZipName``
