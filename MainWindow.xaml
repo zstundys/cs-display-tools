@@ -174,29 +174,55 @@
                         <ui:SymbolIcon Symbol="Keyboard24"/>
                     </ui:CardExpander.Icon>
                     
-                    <StackPanel Margin="0,8,0,0">
-                        <Grid Margin="0,0,0,8">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <ui:TextBlock Text="Set Max Refresh Rate" VerticalAlignment="Center"/>
-                            <ui:Badge Grid.Column="1" Appearance="Info">
-                                <ui:TextBlock Text="Ctrl + Alt + F12" FontFamily="Consolas" FontSize="12"/>
-                            </ui:Badge>
-                        </Grid>
+                    <Grid Margin="0,8,0,0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="ShortcutButtons"/>
+                        </Grid.ColumnDefinitions>
                         
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <ui:TextBlock Text="Toggle Display + Audio" VerticalAlignment="Center"/>
-                            <ui:Badge Grid.Column="1" Appearance="Info">
-                                <ui:TextBlock Text="Ctrl + Alt + F11" FontFamily="Consolas" FontSize="12"/>
-                            </ui:Badge>
-                        </Grid>
-                    </StackPanel>
+                        <!-- Row 0: Set Max Refresh Rate -->
+                        <ui:TextBlock Grid.Row="0" Grid.Column="0" 
+                                      Text="Set Max Refresh Rate" 
+                                      VerticalAlignment="Center"
+                                      Margin="0,0,0,8"/>
+                        <ui:Button Grid.Row="0" Grid.Column="1"
+                                   Appearance="Secondary"
+                                   Margin="8,0,4,8"
+                                   Padding="8,7"
+                                   ToolTip="Restore default (Ctrl+Alt+F12)"
+                                   Click="RestoreSetMaxRefreshShortcut_Click"
+                                   Icon="{ui:SymbolIcon ArrowReset24}"/>
+                        <ui:Button x:Name="SetMaxRefreshShortcutButton" 
+                                   Grid.Row="0" Grid.Column="2"
+                                   Content="Ctrl+Alt+F12" 
+                                   Appearance="Secondary"
+                                   Click="SetMaxRefreshShortcut_Click"
+                                   HorizontalAlignment="Stretch"
+                                   Margin="0,0,0,8"/>
+                        
+                        <!-- Row 1: Toggle Display + Audio -->
+                        <ui:TextBlock Grid.Row="1" Grid.Column="0" 
+                                      Text="Toggle Display + Audio" 
+                                      VerticalAlignment="Center"/>
+                        <ui:Button Grid.Row="1" Grid.Column="1"
+                                   Appearance="Secondary"
+                                   Margin="8,0,4,0"
+                                   Padding="8,7"
+                                   ToolTip="Restore default (Ctrl+Alt+F11)"
+                                   Click="RestoreToggleDisplayShortcut_Click"
+                                   Icon="{ui:SymbolIcon ArrowReset24}"/>
+                        <ui:Button x:Name="ToggleDisplayShortcutButton" 
+                                   Grid.Row="1" Grid.Column="2"
+                                   Content="Ctrl+Alt+F11" 
+                                   Appearance="Secondary"
+                                   Click="ToggleDisplayShortcut_Click"
+                                   HorizontalAlignment="Stretch"/>
+                    </Grid>
                 </ui:CardExpander>
 
                 <!-- Settings Card -->

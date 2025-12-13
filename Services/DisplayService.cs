@@ -103,5 +103,40 @@ public class DisplayService
         }
         return 0;
     }
+
+    /// <summary>
+    /// Gets the maximum available refresh rate for the current resolution.
+    /// </summary>
+    public int GetMaxRefreshRate(string? deviceName = null, int maxHzLimit = 0)
+    {
+        var devMode = new NativeMethods.DEVMODE();
+        devMode.dmSize = (ushort)Marshal.SizeOf<NativeMethods.DEVMODE>();
+
+        // Get current display settings
+        var current = new NativeMethods.DEVMODE();
+        current.dmSize = (ushort)Marshal.SizeOf<NativeMethods.DEVMODE>();
+        NativeMethods.EnumDisplaySettingsW(deviceName, NativeMethods.ENUM_CURRENT_SETTINGS, ref current);
+
+        uint targetWidth = current.dmPelsWidth;
+        uint targetHeight = current.dmPelsHeight;
+
+        int modeNum = 0;
+        int maxHz = 0;
+
+        int upperLimit = maxHzLimit > 0 ? maxHzLimit : 360;
+
+        while (NativeMethods.EnumDisplaySettingsW(deviceName, modeNum++, ref devMode))
+        {
+            if (devMode.dmPelsWidth == targetWidth && devMode.dmPelsHeight == targetHeight)
+            {
+                if (devMode.dmDisplayFrequency > maxHz && devMode.dmDisplayFrequency <= upperLimit)
+                {
+                    maxHz = (int)devMode.dmDisplayFrequency;
+                }
+            }
+        }
+
+        return maxHz;
+    }
 }
 

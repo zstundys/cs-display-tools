@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using DisplayRefreshRate.Services;
 using NAudio.CoreAudioApi;
 using Wpf.Ui.Controls;
@@ -11,14 +12,16 @@ public partial class MainWindow : FluentWindow
     private readonly DisplayService _displayService;
     private readonly AudioService _audioService;
     private readonly SettingsService _settingsService;
+    private readonly HotkeyService _hotkeyService;
     private bool _isLoadingDevices;
 
-    public MainWindow(DisplayService displayService, AudioService audioService, SettingsService settingsService)
+    public MainWindow(DisplayService displayService, AudioService audioService, SettingsService settingsService, HotkeyService hotkeyService)
     {
         InitializeComponent();
         _displayService = displayService;
         _audioService = audioService;
         _settingsService = settingsService;
+        _hotkeyService = hotkeyService;
 
         Loaded += MainWindow_Loaded;
     }
@@ -38,6 +41,15 @@ public partial class MainWindow : FluentWindow
         // Load max Hz settings
         PrimaryMaxHzBox.Value = _settingsService.PrimaryMaxHz;
         ExternalMaxHzBox.Value = _settingsService.ExternalMaxHz;
+        
+        // Load shortcuts
+        UpdateShortcutButtons();
+    }
+    
+    private void UpdateShortcutButtons()
+    {
+        SetMaxRefreshShortcutButton.Content = GetShortcutString(_settingsService.SetMaxRefreshShortcutModifiers, _settingsService.SetMaxRefreshShortcutKey);
+        ToggleDisplayShortcutButton.Content = GetShortcutString(_settingsService.ToggleDisplayShortcutModifiers, _settingsService.ToggleDisplayShortcutKey);
     }
 
     public void UpdateStatus()
@@ -186,7 +198,107 @@ public partial class MainWindow : FluentWindow
         _settingsService.Save();
     }
 
+    private void SetMaxRefreshShortcut_Click(object sender, RoutedEventArgs e)
+    {
+        EditShortcut("Set Max Refresh Rate", 
+            _settingsService.SetMaxRefreshShortcutKey, 
+            _settingsService.SetMaxRefreshShortcutModifiers,
+            (key, modifiers) => 
+            {
+                _settingsService.SetMaxRefreshShortcutKey = key;
+                _settingsService.SetMaxRefreshShortcutModifiers = modifiers;
+                _settingsService.Save();
+                UpdateShortcutButtons();
+            });
+    }
+
+    private void ToggleDisplayShortcut_Click(object sender, RoutedEventArgs e)
+    {
+        EditShortcut("Toggle Display + Audio", 
+            _settingsService.ToggleDisplayShortcutKey, 
+            _settingsService.ToggleDisplayShortcutModifiers,
+            (key, modifiers) => 
+            {
+                _settingsService.ToggleDisplayShortcutKey = key;
+                _settingsService.ToggleDisplayShortcutModifiers = modifiers;
+                _settingsService.Save();
+                UpdateShortcutButtons();
+            });
+    }
+
+    private void RestoreSetMaxRefreshShortcut_Click(object sender, RoutedEventArgs e)
+    {
+        _settingsService.SetMaxRefreshShortcutKey = Key.F12;
+        _settingsService.SetMaxRefreshShortcutModifiers = ModifierKeys.Control | ModifierKeys.Alt;
+        _settingsService.Save();
+        UpdateShortcutButtons();
+        
+        var app = (App)System.Windows.Application.Current;
+        app.RefreshHotkeys();
+    }
+
+    private void RestoreToggleDisplayShortcut_Click(object sender, RoutedEventArgs e)
+    {
+        _settingsService.ToggleDisplayShortcutKey = Key.F11;
+        _settingsService.ToggleDisplayShortcutModifiers = ModifierKeys.Control | ModifierKeys.Alt;
+        _settingsService.Save();
+        UpdateShortcutButtons();
+        
+        var app = (App)System.Windows.Application.Current;
+        app.RefreshHotkeys();
+    }
+
+    private void EditShortcut(string title, Key currentKey, ModifierKeys currentModifiers, Action<Key, ModifierKeys> onSave)
+    {
+        var app = (App)System.Windows.Application.Current;
+        app.UnregisterHotkeys();
+        
+        try
+        {
+            var editor = new ShortcutEditorWindow(currentKey, currentModifiers)
+            {
+                Owner = this,
+                Title = $"Edit Shortcut: {title}"
+            };
+            
+            if (editor.ShowDialog() == true)
+            {
+                onSave(editor.ResultKey, editor.ResultModifiers);
+            }
+        }
+        finally
+        {
+            app.RefreshHotkeys();
+        }
+    }
+    
+    private string GetShortcutString(ModifierKeys modifiers, Key key)
+    {
+        var sb = new System.Text.StringBuilder();
+        if ((modifiers & ModifierKeys.Control) != 0) sb.Append("Ctrl+");
+        if ((modifiers & ModifierKeys.Alt) != 0) sb.Append("Alt+");
+        if ((modifiers & ModifierKeys.Shift) != 0) sb.Append("Shift+");
+        if ((modifiers & ModifierKeys.Windows) != 0) sb.Append("Win+");
+        sb.Append(GetFriendlyKeyName(key));
+        return sb.ToString();
+    }
+
+    private static string GetFriendlyKeyName(Key key)
+    {
+        return key switch
+        {
+            Key.Next => "PageDown",
+            Key.Prior => "PageUp",
+            Key.Back => "Backspace",
+            Key.Capital => "CapsLock",
+            Key.Escape => "Esc",
+            Key.Return => "Enter",
+            Key.Snapshot => "PrintScreen",
+            Key.Scroll => "ScrollLock",
+            _ => key.ToString()
+        };
+    }
+
     // Window now closes normally to free GPU memory
     // App.xaml.cs will recreate it when needed
 }
-

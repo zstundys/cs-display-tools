@@ -1,4 +1,5 @@
 using System.Windows;
+using System.Windows.Input;
 using DisplayRefreshRate.Services;
 using Wpf.Ui.Appearance;
 
@@ -41,8 +42,7 @@ public partial class App : System.Windows.Application
             _hotkeyService = new HotkeyService();
             
             // Register hotkeys
-            _hotkeyService.RegisterHotkey(HotkeyId.SetMaxRefresh, ModifierKeys.Control | ModifierKeys.Alt, Key.F12, OnSetMaxRefreshRate);
-            _hotkeyService.RegisterHotkey(HotkeyId.ToggleDisplay, ModifierKeys.Control | ModifierKeys.Alt, Key.F11, OnToggleDisplay);
+            RefreshHotkeys();
             
             // Listen for display changes (resolution, Hz changes from Windows or other apps)
             _hotkeyService.OnDisplayChanged = OnDisplayChanged;
@@ -51,14 +51,21 @@ public partial class App : System.Windows.Application
             _trayService = new TrayService();
             _trayService.AddMenuItem("Open Settings", ShowSettings);
             _trayService.AddSeparator();
-            _trayService.AddMenuItem("Set Max Refresh Rate (Ctrl+Alt+F12)", OnSetMaxRefreshRate);
-            _trayService.AddMenuItem("Toggle Display+Audio (Ctrl+Alt+F11)", OnToggleDisplay);
+            _trayService.AddMenuItem(() => $"Set Max Refresh Rate ({GetShortcutString(_settingsService.SetMaxRefreshShortcutModifiers, _settingsService.SetMaxRefreshShortcutKey)})", OnSetMaxRefreshRate);
+            _trayService.AddMenuItem(() => $"Toggle Display+Audio ({GetShortcutString(_settingsService.ToggleDisplayShortcutModifiers, _settingsService.ToggleDisplayShortcutKey)})", OnToggleDisplay);
             _trayService.AddSeparator();
             _trayService.AddMenuItem("Exit", () => Shutdown());
-            // Set max refresh rate on startup
-            _displayService.SetMaxRefreshRate();
             
-            _lastKnownHz = _displayService.GetCurrentRefreshRate();
+            // Set max refresh rate on startup only if not already at max
+            int currentHz = _displayService.GetCurrentRefreshRate();
+            int maxHz = _displayService.GetMaxRefreshRate();
+            if (currentHz != maxHz)
+            {
+                _displayService.SetMaxRefreshRate();
+                currentHz = _displayService.GetCurrentRefreshRate();
+            }
+            
+            _lastKnownHz = currentHz;
             _trayService.Initialize(_lastKnownHz);
             _trayService.OnDoubleClick = ShowSettings;
         }
@@ -70,12 +77,68 @@ public partial class App : System.Windows.Application
         }
     }
 
+    public void RefreshHotkeys()
+    {
+        if (_hotkeyService == null || _settingsService == null) return;
+
+        // Unregister existing first (safe to call even if not registered)
+        UnregisterHotkeys();
+
+        // Register new
+        _hotkeyService.RegisterHotkey(HotkeyId.SetMaxRefresh, 
+            _settingsService.SetMaxRefreshShortcutModifiers, 
+            _settingsService.SetMaxRefreshShortcutKey, 
+            OnSetMaxRefreshRate);
+
+        _hotkeyService.RegisterHotkey(HotkeyId.ToggleDisplay, 
+            _settingsService.ToggleDisplayShortcutModifiers, 
+            _settingsService.ToggleDisplayShortcutKey, 
+            OnToggleDisplay);
+            
+        // Update tray menu if it exists (to show new shortcuts in tooltips/items)
+        _trayService?.RefreshContextMenu();
+    }
+
+    public void UnregisterHotkeys()
+    {
+        if (_hotkeyService == null) return;
+        _hotkeyService.UnregisterHotkey(HotkeyId.SetMaxRefresh);
+        _hotkeyService.UnregisterHotkey(HotkeyId.ToggleDisplay);
+    }
+
+    private string GetShortcutString(ModifierKeys modifiers, Key key)
+    {
+        var sb = new System.Text.StringBuilder();
+        if ((modifiers & ModifierKeys.Control) != 0) sb.Append("Ctrl+");
+        if ((modifiers & ModifierKeys.Alt) != 0) sb.Append("Alt+");
+        if ((modifiers & ModifierKeys.Shift) != 0) sb.Append("Shift+");
+        if ((modifiers & ModifierKeys.Windows) != 0) sb.Append("Win+");
+        sb.Append(GetFriendlyKeyName(key));
+        return sb.ToString();
+    }
+
+    private static string GetFriendlyKeyName(Key key)
+    {
+        return key switch
+        {
+            Key.Next => "PageDown",
+            Key.Prior => "PageUp",
+            Key.Back => "Backspace",
+            Key.Capital => "CapsLock",
+            Key.Escape => "Esc",
+            Key.Return => "Enter",
+            Key.Snapshot => "PrintScreen",
+            Key.Scroll => "ScrollLock",
+            _ => key.ToString()
+        };
+    }
+
     private void ShowSettings()
     {
         // Create window on-demand if it doesn't exist or was closed
         if (_mainWindow == null || !_mainWindow.IsLoaded)
         {
-            _mainWindow = new MainWindow(_displayService!, _audioService!, _settingsService!);
+            _mainWindow = new MainWindow(_displayService!, _audioService!, _settingsService!, _hotkeyService!);
             _mainWindow.Closed += (s, e) => _mainWindow = null;  // Clear reference when closed
             
             // Watch for system theme changes on this window
@@ -183,24 +246,8 @@ public enum HotkeyId
     ToggleDisplay = 2
 }
 
-public enum ModifierKeys
-{
-    None = 0,
-    Alt = 1,
-    Control = 2,
-    Shift = 4,
-    Win = 8
-}
-
-public enum Key
-{
-    F11 = 0x7A,
-    F12 = 0x7B
-}
-
 public enum DisplayMode
 {
     Primary = 0,
     Secondary = 1
 }
-

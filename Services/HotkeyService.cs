@@ -1,3 +1,4 @@
+using System.Windows.Input;
 using System.Windows.Interop;
 using DisplayRefreshRate.Native;
 
@@ -38,8 +39,9 @@ public class HotkeyService : IDisposable
     public bool RegisterHotkey(HotkeyId id, ModifierKeys modifiers, Key key, Action callback)
     {
         int hotkeyId = (int)id;
+        int virtualKey = KeyInterop.VirtualKeyFromKey(key);
         
-        if (!NativeMethods.RegisterHotKey(_hwnd, hotkeyId, (uint)modifiers, (uint)key))
+        if (!NativeMethods.RegisterHotKey(_hwnd, hotkeyId, (uint)modifiers, (uint)virtualKey))
         {
             System.Diagnostics.Debug.WriteLine($"Failed to register hotkey {id}");
             return false;
@@ -95,4 +97,3 @@ public class HotkeyService : IDisposable
         _hwndSource = null;
     }
 }
-

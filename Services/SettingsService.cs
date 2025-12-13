@@ -1,4 +1,5 @@
 using System.IO;
+using System.Windows.Input;
 using DisplayRefreshRate.Native;
 
 namespace DisplayRefreshRate.Services;
@@ -20,6 +21,13 @@ public class SettingsService
     /// Max refresh rate for external display (0 = no limit). Default 119Hz for 12-bit HDR color support.
     /// </summary>
     public int ExternalMaxHz { get; set; } = 119;
+
+    // Default shortcuts (defined out-of-the-box)
+    public Key SetMaxRefreshShortcutKey { get; set; } = Key.F12;
+    public ModifierKeys SetMaxRefreshShortcutModifiers { get; set; } = ModifierKeys.Control | ModifierKeys.Alt;
+
+    public Key ToggleDisplayShortcutKey { get; set; } = Key.F11;
+    public ModifierKeys ToggleDisplayShortcutModifiers { get; set; } = ModifierKeys.Control | ModifierKeys.Alt;
 
     public SettingsService()
     {
@@ -55,7 +63,30 @@ public class SettingsService
             ExternalMaxHz = externalMaxHz;
         }
 
+        // Load Shortcuts
+        LoadShortcut("SetMaxRefresh", k => SetMaxRefreshShortcutKey = k, m => SetMaxRefreshShortcutModifiers = m);
+        LoadShortcut("ToggleDisplay", k => ToggleDisplayShortcutKey = k, m => ToggleDisplayShortcutModifiers = m);
+
         _loaded = true;
+    }
+
+    private void LoadShortcut(string prefix, Action<Key> setKey, Action<ModifierKeys> setModifiers)
+    {
+        char[] buffer = new char[256];
+        
+        NativeMethods.GetPrivateProfileStringW("Shortcuts", $"{prefix}Key", "", buffer, (uint)buffer.Length, _configPath);
+        string keyStr = new string(buffer).TrimEnd('\0');
+        if (!string.IsNullOrEmpty(keyStr) && Enum.TryParse<Key>(keyStr, out var key))
+        {
+            setKey(key);
+        }
+
+        NativeMethods.GetPrivateProfileStringW("Shortcuts", $"{prefix}Modifiers", "", buffer, (uint)buffer.Length, _configPath);
+        string modStr = new string(buffer).TrimEnd('\0');
+        if (!string.IsNullOrEmpty(modStr) && Enum.TryParse<ModifierKeys>(modStr, out var modifiers))
+        {
+            setModifiers(modifiers);
+        }
     }
 
     /// <summary>
@@ -67,6 +98,13 @@ public class SettingsService
         NativeMethods.WritePrivateProfileStringW("Audio", "Secondary", SecondaryDevice, _configPath);
         NativeMethods.WritePrivateProfileStringW("Display", "PrimaryMaxHz", PrimaryMaxHz.ToString(), _configPath);
         NativeMethods.WritePrivateProfileStringW("Display", "ExternalMaxHz", ExternalMaxHz.ToString(), _configPath);
+
+        // Save Shortcuts
+        NativeMethods.WritePrivateProfileStringW("Shortcuts", "SetMaxRefreshKey", SetMaxRefreshShortcutKey.ToString(), _configPath);
+        NativeMethods.WritePrivateProfileStringW("Shortcuts", "SetMaxRefreshModifiers", SetMaxRefreshShortcutModifiers.ToString(), _configPath);
+
+        NativeMethods.WritePrivateProfileStringW("Shortcuts", "ToggleDisplayKey", ToggleDisplayShortcutKey.ToString(), _configPath);
+        NativeMethods.WritePrivateProfileStringW("Shortcuts", "ToggleDisplayModifiers", ToggleDisplayShortcutModifiers.ToString(), _configPath);
     }
 
     private static string GetConfigPath()
@@ -80,4 +118,3 @@ public class SettingsService
         return Path.Combine(directory ?? ".", "audio.ini");
     }
 }
-
