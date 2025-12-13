@@ -97,7 +97,7 @@ if ($PreviousTag) {
 }
 
 # Get commit messages since last release
-$CommitLines = git log $CommitRange --pretty=format:"- %s" --no-merges 2>$null
+$CommitLines = git log $CommitRange --pretty=format:"- %h %s" --no-merges 2>$null
 if ($CommitLines) {
     $Commits = $CommitLines -join "`n"
 } else {
